@@ -22,7 +22,10 @@ export class Realm {
     const serverList = await this.liveplayerlist()
     const server = serverList.find((server: any) => (server.id = world.id))
     let players: string[] = []
-    const cacheString = fs.readFileSync('src/cache/uuid.json').toString()
+    if (!fs.existsSync('src/cache/uuid.json')) {
+      fs.writeFileSync('src/cache/uuid.json', '{}')
+    }
+    const cacheString = fs.readFileSync('src/cache/uuid.json', { flag: 'r+' }).toString()
     const cache = JSON.parse(cacheString);
     if (server) {
       const playerList = JSON.parse(server.playerList)
