@@ -1,10 +1,10 @@
 import { AxiosResponse, AxiosStatic } from 'axios'
 import { API } from './constants'
-import fs from 'fs';
+import fs from 'fs'
 
 type PlayerInfo = { [key: string]: Promise<any> }
 export class Realm {
-  constructor(private readonly httpClient: AxiosStatic) { }
+  constructor(private readonly httpClient: AxiosStatic) {}
 
   async available() {
     const res = await this.httpClient.get(API.REALM + '/mco/available')
@@ -25,8 +25,10 @@ export class Realm {
     if (!fs.existsSync('src/cache/uuid.json')) {
       fs.writeFileSync('src/cache/uuid.json', '{}')
     }
-    const cacheString = fs.readFileSync('src/cache/uuid.json', { flag: 'r+' }).toString()
-    const cache = JSON.parse(cacheString);
+    const cacheString = fs
+      .readFileSync('src/cache/uuid.json', { flag: 'r+' })
+      .toString()
+    const cache = JSON.parse(cacheString)
     if (server) {
       const playerList = JSON.parse(server.playerList)
       const playerInfoList: PlayerInfo[] = playerList.map((player: any) => {
@@ -35,22 +37,32 @@ export class Realm {
         }
         const api = `/user/profiles/${player.playerId}/names`
         return {
-          [player.playerId]: this.httpClient.get(API.MOJANG + api)
+          [player.playerId]: this.httpClient.get(API.MOJANG + api),
         }
       })
       for await (const playerInfo of playerInfoList) {
-        const promise = Object.values(playerInfo)[0];
-        const res = await promise;
+        const promise = Object.values(playerInfo)[0]
+        const res = await promise
         const playerID = Object.keys(playerInfo)[0]
         const playerName = res.data ? res.data[res.data.length - 1].name : res
         if (cache[playerID] === undefined) {
-          cache[playerID] = playerName;
+          cache[playerID] = playerName
         }
         players.push(playerName)
       }
     }
     await fs.writeFileSync('src/cache/uuid.json', JSON.stringify(cache))
     return players || []
+  }
+
+  async expired(name: string) {
+    const worlds = await this.worlds()
+    const world = worlds.find((world: any) => world.name === name)
+    return {
+      daysLeft: world.daysLeft,
+      expired: world.expired,
+      expiredTrial: world.expiredTrial,
+    }
   }
 
   async version() {

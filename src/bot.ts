@@ -61,12 +61,32 @@ export class Bot {
             break
           case 'version':
             const isCompatible = await this.realm?.version()
-            console.log(isCompatible)
             const compatibleMessage = `This Realm is ${isCompatible} with Minecraft version ${MINECRAFT.VERSION}`
             this.bot.sendMessage({
               to: channelID,
               message: compatibleMessage,
             })
+            break
+          case 'expire':
+            const worldExpired = await this.realm?.expired('Jealm')
+            if (worldExpired) {
+              const { daysLeft, expired, expiredTrial } = worldExpired
+              let expiredMessage = ''
+              if (expired && expiredTrial) {
+                expiredMessage = `Jealm subscription has expired`
+              } else {
+                expiredMessage = `There are ${daysLeft} days remaining until the Jealm subscription expire`
+              }
+              this.bot.sendMessage({
+                to: channelID,
+                message: expiredMessage,
+              })
+            } else {
+              this.bot.sendMessage({
+                to: channelID,
+                message: `Something went wrong`,
+              })
+            }
             break
         }
       }
